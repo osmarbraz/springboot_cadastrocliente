@@ -1,5 +1,6 @@
 package com.controle;
 
+import com.dao.ClienteDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.stereotype.Controller;
@@ -12,6 +13,10 @@ import static com.util.Util.nonNullCopyProperties;
 import com.servico.ClienteServico;
 import com.formulario.ClienteFrm;
 import com.entidade.Cliente;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * Classe de controle de cliente.
@@ -25,9 +30,13 @@ public class ClienteControle {
 
     @Autowired
     private final ClienteServico clienteServico;
-
-    public ClienteControle(ClienteServico clienteServico) {
+    
+    @Autowired
+    private final ClienteDAO clienteDAO;
+    
+    public ClienteControle(ClienteServico clienteServico, ClienteDAO clienteDAO) {
         this.clienteServico = clienteServico;
+        this.clienteDAO = clienteDAO;
     }
 
     /**
@@ -207,5 +216,32 @@ public class ClienteControle {
     public String frmClienteListar(Model model) {
         model.addAttribute("clientes", clienteServico.getLista());
         return "FrmClienteListar";
+    }
+    
+    /**
+     *  Serviço que retorna a lista de clientes.
+     *
+     * @return A lista de clientes em JSON.
+     */
+    @ResponseBody   //Usa a biblioteca Jackson para retornar o objeto em JSON
+    @GetMapping("/clientes")
+    public List<Cliente> getLista() {
+        //Recupera a lista de clientes
+        List clientes = (List<Cliente>) clienteDAO.findAll();
+        
+	return clientes;
+    }    
+    
+    /**
+     * Serviço que retorna um cliente em JSON.
+     *
+     * @param clienteId
+     * @return Um um cliente.
+     */
+    @ResponseBody   //Usa a biblioteca Jackson para retornar o objeto em JSON
+    @GetMapping("/cliente/{clienteId}")
+    public Cliente getCliente(@PathVariable("clienteId") int clienteId) {       
+        //Recupera o cliente
+        return clienteDAO.findById(clienteId).get();        
     }
 }
